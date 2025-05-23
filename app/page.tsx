@@ -281,8 +281,8 @@ export default function Home() {
               </p>
             </div>
             <img
-              src="/aik.jpg?height=400&width=600"
-              alt="Equipe AIK Network"
+              src="/a.jpeg?height=400&width=600"
+              alt="AIK Network"
               className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
               width={600}
               height={400}
