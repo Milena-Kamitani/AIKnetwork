@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — AIK Controle{% endblock %}
+
+{% block nav %}
+{% with nav_active='overview' %}
+{% include "partials/technician_nav.html" %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
+<section class="overview-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="overview-sub">Visão geral dos chamados de suporte</p>
+  </div>
+  <a href="/tecnicos/chamados" class="btn btn-primary">Ver todos os chamados</a>
+</section>
+
+<div class="metric-grid">
+  <a href="/tecnicos/chamados" class="metric-card metric-total">
+    <span class="metric-value">{{ stats.total }}</span>
+    <span class="metric-label">Total de chamados</span>
+  </a>
+  <a href="/tecnicos/chamados?status=novo" class="metric-card" style="--metric-bg: {{ status_colors.novo }}">
+    <span class="metric-value">{{ stats.by_status.novo }}</span>
+    <span class="metric-label">Novos</span>
+  </a>
+  <a href="/tecnicos/chamados?status=em_atendimento" class="metric-card" style="--metric-bg: {{ status_colors.em_atendimento }}">
+    <span class="metric-value">{{ stats.by_status.em_atendimento }}</span>
+    <span class="metric-label">Em atendimento</span>
+  </a>
+  <a href="/tecnicos/chamados?status=resolvido" class="metric-card" style="--metric-bg: {{ status_colors.resolvido }}">
+    <span class="metric-value">{{ stats.by_status.resolvido }}</span>
+    <span class="metric-label">Resolvidos</span>
+  </a>
+  <div class="metric-card metric-soft">
+    <span class="metric-value">{{ stats.this_month }}</span>
+    <span class="metric-label">Abertos este mês</span>
+  </div>
+  <a href="/tecnicos/chamados?status=novo" class="metric-card metric-soft">
+    <span class="metric-value">{{ stats.open_count }}</span>
+    <span class="metric-label">Em aberto (novo + atendimento)</span>
+  </a>
+  <div class="metric-card metric-soft">
+    <span class="metric-value">{{ stats.unassigned }}</span>
+    <span class="metric-label">Sem técnico atribuído</span>
+  </div>
+  <div class="metric-card metric-soft">
+    <span class="metric-value">{{ stats.with_attachments }}</span>
+    <span class="metric-label">Com print anexado</span>
+  </div>
+</div>
+
+<div class="charts-grid">
+  <div class="card chart-card">
+    <h2>Por status</h2>
+    <canvas id="chartStatus" height="220"></canvas>
+  </div>
+  <div class="card chart-card">
+    <h2>Últimos 14 dias</h2>
+    <canvas id="chartDays" height="220"></canvas>
+  </div>
+  <div class="card chart-card">
+    <h2>Top municípios</h2>
+    <canvas id="chartMunicipalities" height="220"></canvas>
+  </div>
+  <div class="card chart-card">
+    <h2>Por técnico</h2>
+    <canvas id="chartTechnicians" height="220"></canvas>
+  </div>
+</div>
+
+{% if stats.recent %}
+<section class="recent-section">
+  <div class="recent-header">
+    <h2>Chamados recentes</h2>
+    <a href="/tecnicos/chamados">Ver lista completa →</a>
+  </div>
+  <div class="table-wrap card">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>Solicitante</th>
+          <th>Município</th>
+          <th>Status</th>
+          <th>Técnico</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in stats.recent %}
+        <tr>
+          <td>{{ ticket.id }}</td>
+          <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ ticket.requester_name }}</td>
+          <td>{{ ticket.municipality }}</td>
+          <td>
+            <span class="status-badge" style="background: {{ status_colors[ticket.status] }}">
+              {{ status_labels[ticket.status] }}
+            </span>
+          </td>
+          <td>{{ ticket.technician.name if ticket.technician else '—' }}</td>
+          <td><a class="btn btn-small" href="/tecnicos/chamados/{{ ticket.id }}">Ver</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<script src="/static/js/chart.umd.min.js"></script>
+<script>
+  const statusLabels = {{ status_labels | tojson }};
+  const statusColors = {{ status_colors | tojson }};
+  const byStatus = {{ stats.by_status | tojson }};
+  const lastDays = {{ stats.last_days | tojson }};
+  const municipalities = {{ stats.top_municipalities | tojson }};
+  const technicians = {{ stats.by_technician | tojson }};
+
+  if (typeof Chart === 'undefined') {
+    document.querySelectorAll('.chart-card canvas').forEach((el) => {
+      const msg = document.createElement('p');
+      msg.className = 'chart-fallback';
+      msg.textContent = 'Gráfico indisponível (recarregue a página).';
+      el.replaceWith(msg);
+    });
+  } else {
+  Chart.defaults.font.family = '"Segoe UI", system-ui, sans-serif';
+  Chart.defaults.color = '#6b7280';
+
+  new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(statusLabels).map(k => statusLabels[k]),
+      datasets: [{
+        data: Object.keys(statusLabels).map(k => byStatus[k] || 0),
+        backgroundColor: Object.keys(statusLabels).map(k => statusColors[k]),
+        borderWidth: 2,
+        borderColor: '#fff',
+      }],
+    },
+    options: {
+      plugins: { legend: { position: 'bottom' } },
+      cutout: '55%',
+    },
+  });
+
+  new Chart(document.getElementById('chartDays'), {
+    type: 'bar',
+    data: {
+      labels: lastDays.map(d => d.label),
+      datasets: [{
+        label: 'Chamados',
+        data: lastDays.map(d => d.count),
+        backgroundColor: 'rgba(30, 111, 217, 0.75)',
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+    },
+  });
+
+  new Chart(document.getElementById('chartMunicipalities'), {
+    type: 'bar',
+    data: {
+      labels: municipalities.map(m => m[0]),
+      datasets: [{
+        label: 'Chamados',
+        data: municipalities.map(m => m[1]),
+        backgroundColor: 'rgba(22, 163, 74, 0.75)',
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+    },
+  });
+
+  const techLabels = technicians.map(t => t[0]);
+  const techData = technicians.map(t => t[1]);
+  if ({{ stats.unassigned }} > 0) {
+    techLabels.push('Sem atribuição');
+    techData.push({{ stats.unassigned }});
+  }
+
+  new Chart(document.getElementById('chartTechnicians'), {
+    type: 'bar',
+    data: {
+      labels: techLabels,
+      datasets: [{
+        label: 'Chamados',
+        data: techData,
+        backgroundColor: 'rgba(124, 58, 237, 0.75)',
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+    },
+  });
+  }
+</script>
+{% endblock %}

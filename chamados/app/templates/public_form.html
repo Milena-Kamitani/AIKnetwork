@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Abrir chamado — AIK Controle{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Abrir chamado de suporte</h1>
+  <p>Preencha todos os campos. O WhatsApp é obrigatório para que possamos retornar o contato.</p>
+</section>
+
+{% if success_id %}
+<div class="alert alert-success">
+  Chamado <strong>#{{ success_id }}</strong> registrado com sucesso. Nossa equipe entrará em contato pelo WhatsApp informado.
+</div>
+{% endif %}
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form class="card form-grid" method="post" action="/chamados" enctype="multipart/form-data">
+  <div class="field">
+    <label for="requester_name">Nome do solicitante *</label>
+    <input id="requester_name" name="requester_name" required maxlength="120" placeholder="Seu nome completo">
+  </div>
+
+  <div class="field">
+    <label for="municipality">Município *</label>
+    <input id="municipality" name="municipality" required maxlength="120" placeholder="Ex.: Maringá, Paiçandu">
+  </div>
+
+  <div class="field">
+    <label for="department">Setor / Empresa *</label>
+    <input id="department" name="department" required maxlength="120" placeholder="Ex.: Saúde, Prefeitura, Compras">
+  </div>
+
+  <div class="field">
+    <label for="whatsapp">WhatsApp para contato *</label>
+    <input
+      id="whatsapp"
+      name="whatsapp"
+      type="tel"
+      required
+      inputmode="numeric"
+      pattern="[\d\s()+\-]{10,20}"
+      maxlength="20"
+      placeholder="(44) 99999-9999"
+      title="Informe DDD + número com pelo menos 10 dígitos"
+    >
+    <small>Somente números com DDD. Campo obrigatório.</small>
+  </div>
+
+  <div class="field field-full">
+    <label for="problem_type">Descrição do problema *</label>
+    <textarea id="problem_type" name="problem_type" required rows="5" placeholder="Descreva o que está acontecendo..."></textarea>
+  </div>
+
+  <div class="field field-full">
+    <label for="screenshots">Prints / imagens (opcional)</label>
+    <input id="screenshots" name="screenshots" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+    <small>Até 5 imagens, 5 MB cada (PNG, JPG, WEBP).</small>
+  </div>
+
+  <div class="field field-full">
+    <button type="submit" class="btn btn-primary">Enviar chamado</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+# Geral
+.DS_Store
+.env
+.env.local
+.env*.local
+
+# Chamados (Python)
+chamados/.env
+chamados/__pycache__/
+chamados/**/__pycache__/
+chamados/*.py[cod]
+chamados/.venv/
+chamados/venv/
+chamados/data/aik.db
+chamados/uploads/*
+!chamados/uploads/.gitkeep
+
+# Site (Next.js)
+site/node_modules/
+site/.next/
+site/out/
+site/.pnpm-store/

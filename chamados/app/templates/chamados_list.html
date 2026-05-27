@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Chamados — AIK Controle{% endblock %}
+
+{% block nav %}
+{% with nav_active=nav_active %}
+{% include "partials/technician_nav.html" %}
+{% endwith %}
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+  <h1>Chamados</h1>
+  <form class="filters" method="get" action="/tecnicos/chamados">
+    <input type="search" name="q" value="{{ search }}" placeholder="Buscar nome, setor, problema...">
+    <select name="municipality" title="Município">
+      <option value="">Todos os municípios</option>
+      {% for city in municipalities %}
+      <option value="{{ city }}" {% if current_municipality == city %}selected{% endif %}>{{ city }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" title="Status">
+      <option value="">Todos os status</option>
+      {% for key, label in status_labels.items() %}
+      <option value="{{ key }}" {% if current_status == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label class="filter-date">
+      <span>De</span>
+      <input type="date" name="date_from" value="{{ date_from }}">
+    </label>
+    <label class="filter-date">
+      <span>Até</span>
+      <input type="date" name="date_to" value="{{ date_to }}">
+    </label>
+    <button type="submit" class="btn btn-secondary">Filtrar</button>
+    <a href="/tecnicos/chamados" class="btn btn-small btn-clear">Limpar</a>
+  </form>
+</section>
+
+<div class="status-legend">
+  {% for key, label in status_labels.items() %}
+  <span class="status-pill" style="--pill-color: {{ status_colors[key] }}">{{ label }}</span>
+  {% endfor %}
+</div>
+
+{% if not tickets %}
+<p class="empty">Nenhum chamado encontrado.</p>
+{% else %}
+<div class="table-wrap card">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Data</th>
+        <th>Solicitante</th>
+        <th>Município</th>
+        <th>Setor</th>
+        <th>Descrição</th>
+        <th>WhatsApp</th>
+        <th>Status</th>
+        <th>Técnico</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in tickets %}
+      <tr>
+        <td>{{ ticket.id }}</td>
+        <td>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ ticket.requester_name }}</td>
+        <td>{{ ticket.municipality }}</td>
+        <td>{{ ticket.department }}</td>
+        <td class="cell-desc" title="{{ ticket.problem_type }}">{{ ticket.problem_type }}</td>
+        <td><a href="{{ ticket.whatsapp_url }}" target="_blank" rel="noopener">{{ ticket.whatsapp_display }}</a></td>
+        <td>
+          <span class="status-badge" style="background: {{ status_colors[ticket.status] }}">
+            {{ status_labels[ticket.status] }}
+          </span>
+        </td>
+        <td>
+          {% if ticket.technician %}
+          <span class="tech-badge" style="background: {{ ticket.technician.color }}20; color: {{ ticket.technician.color }}; border-color: {{ ticket.technician.color }}">
+            {{ ticket.technician.name }}
+          </span>
+          {% else %}
+          <span class="muted">—</span>
+          {% endif %}
+        </td>
+        <td><a class="btn btn-small" href="/tecnicos/chamados/{{ ticket.id }}">Ver</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+[Unit]
+Description=AIK Controle - sistema de chamados
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/aik-sistema/chamados
+EnvironmentFile=/opt/aik-sistema/chamados/.env
+ExecStart=/opt/aik-sistema/chamados/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

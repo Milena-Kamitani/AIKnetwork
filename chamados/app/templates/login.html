@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Login — AIK Controle{% endblock %}
+
+{% block nav %}
+<a href="/">Abrir chamado</a>
+{% endblock %}
+
+{% block content %}
+<section class="hero narrow">
+  <h1>Área dos técnicos</h1>
+  <p>Acesse com seu usuário e senha para visualizar e atender chamados.</p>
+</section>
+
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form class="card form-grid narrow-card" method="post" action="/tecnicos/login">
+  <div class="field field-full">
+    <label for="username">Usuário</label>
+    <input id="username" name="username" required autocomplete="username">
+  </div>
+  <div class="field field-full">
+    <label for="password">Senha</label>
+    <input id="password" name="password" type="password" required autocomplete="current-password">
+  </div>
+  <div class="field field-full">
+    <button type="submit" class="btn btn-primary">Entrar</button>
+  </div>
+</form>
+
+<p class="hint">Usuários iniciais: <code>andre</code>, <code>milena</code>, <code>fernando</code> ou <code>admin</code>. Senha padrão na primeira instalação: <code>aik2025</code> (técnicos) — altere em produção.</p>
+{% endblock %}

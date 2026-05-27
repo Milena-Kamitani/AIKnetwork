@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Chamado #{{ ticket.id }} — AIK Controle{% endblock %}
+
+{% block nav %}
+{% with nav_active='chamados' %}
+{% include "partials/technician_nav.html" %}
+{% endwith %}
+<a href="/tecnicos/chamados" class="nav-back">← Voltar</a>
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}
+<div class="alert alert-success">Alterações salvas.</div>
+{% endif %}
+
+<section class="ticket-detail">
+  <div class="ticket-meta card">
+    <div class="ticket-title">
+      <h1>Chamado #{{ ticket.id }}</h1>
+      <span class="status-badge" style="background: {{ status_colors[ticket.status] }}">
+        {{ status_labels[ticket.status] }}
+      </span>
+    </div>
+    <dl class="meta-grid">
+      <div><dt>Data</dt><dd>{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}</dd></div>
+      <div><dt>Solicitante</dt><dd>{{ ticket.requester_name }}</dd></div>
+      <div><dt>Município</dt><dd>{{ ticket.municipality }}</dd></div>
+      <div><dt>Setor / Empresa</dt><dd>{{ ticket.department }}</dd></div>
+      <div><dt>WhatsApp</dt><dd><a href="{{ ticket.whatsapp_url }}" target="_blank" rel="noopener">{{ ticket.whatsapp_display }}</a></dd></div>
+    </dl>
+    <div class="problem-box">
+      <h2>Problema</h2>
+      <p>{{ ticket.problem_type }}</p>
+    </div>
+    {% if ticket.attachments %}
+    <div class="attachments">
+      <h2>Anexos</h2>
+      <div class="attachment-grid">
+        {% for att in ticket.attachments %}
+        <button
+          type="button"
+          class="attachment-thumb"
+          data-lightbox-src="/anexos/{{ att.stored_name }}"
+          data-lightbox-alt="{{ att.original_name }}"
+          title="Clique para ampliar"
+        >
+          <img src="/anexos/{{ att.stored_name }}" alt="{{ att.original_name }}">
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <form class="card form-grid side-panel" method="post" action="/tecnicos/chamados/{{ ticket.id }}">
+    <h2>Atualizar chamado</h2>
+    <div class="field field-full">
+      <label for="status">Status</label>
+      <select id="status" name="status" required>
+        {% for key, label in status_labels.items() %}
+        <option value="{{ key }}" {% if ticket.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field field-full">
+      <label for="technician_id">Técnico responsável</label>
+      <select id="technician_id" name="technician_id">
+        <option value="">Sem atribuição</option>
+        {% for tech in technicians %}
+        <option value="{{ tech.id }}" {% if ticket.technician_id == tech.id %}selected{% endif %}>{{ tech.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field field-full">
+      <label for="notes">Anotações</label>
+      <textarea id="notes" name="notes" rows="4" placeholder="Observações internas...">{{ ticket.notes or '' }}</textarea>
+    </div>
+    <div class="field field-full">
+      <button type="submit" class="btn btn-primary">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
