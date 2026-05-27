@@ -67,12 +67,13 @@ Use `--force` só se quiser **substituir** o que está no GitHub pelo projeto no
 ## Vercel (site)
 
 1. Conecte o repositório **AIKnetwork** na Vercel
-2. **Root Directory:** `site`
-3. Variável de ambiente:
-   - `NEXT_PUBLIC_CHAMADOS_URL` = `https://chamados.seudominio.com.br` (URL da VM quando estiver no ar)
-4. Deploy
+2. **Settings → General → Root Directory** → **`site`** (obrigatório — é onde está o `package.json` do Next.js)
+3. **Não** use comandos de build customizados na raiz do repo; o `package.json` fica dentro de `site/`
+4. **Settings → Environment Variables:**
+   - `NEXT_PUBLIC_CHAMADOS_URL` = URL do sistema de chamados na VM (depois que subir)
+5. **Deployments → Redeploy**
 
-Ou use o `vercel.json` na raiz (já aponta para `site/`).
+Se aparecer erro *"No Next.js version detected"*, o Root Directory não está como `site`.
 
 ---
 
